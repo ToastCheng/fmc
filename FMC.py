@@ -9,7 +9,7 @@ import webbrowser
 #webbrowser.open('http://example.com')
 
 from PyQt5.QtWidgets import QMainWindow, QApplication, QLineEdit,\
-    QPushButton,QLabel,QSlider, QVBoxLayout, QFileDialog
+    QPushButton,QLabel,QSlider, QFileDialog, QMessageBox
 from PyQt5.QtCore import Qt
 
 from parameter import calculate_mua_mus
@@ -28,6 +28,18 @@ LIMIT = {'upA':[0,100000,1,'%.f'],
          'Ccol':[0,10000,0.01,'%.2f'],
          'thick':[0,1000,0.0001,'%.4f']
          }
+#e.g.\n\
+# \tsample_name upA upk downA downk upg downg StO2 CHb Ccol thick'
+
+ERROR_TEXT = {
+    'fileNameError':'Please enter file name',
+    'autoFileNotImportError':'Auto Run needs to import data file',
+    'zeroGError':'anisotropy factor g should greater than zero',
+
+
+
+}
+
 
 
 class Window(QMainWindow):
@@ -41,6 +53,7 @@ class Window(QMainWindow):
         self.para=[]
         self.paraSlide={}
         self.paraValue={}
+        self.fname = None
         self.initUI()
 
     def initUI(self):
@@ -107,6 +120,12 @@ class Window(QMainWindow):
         auto_btn.setStatusTip('simulate using data in file')
         auto_btn.clicked.connect(self.autoRun)
 
+        help_btn = QPushButton('Help',self)
+        help_btn.move(390,240)
+        help_btn.setStatusTip('help message')
+        help_btn.clicked.connect(self.help)
+
+
 
         self.setFixedSize(500,350)
         self.setWindowTitle('Fluorescence Monte Carlo')
@@ -131,11 +150,37 @@ class Window(QMainWindow):
     def new(self):
         self.__init__()
 
+    def help(self):
+        msg = QMessageBox()
+        msg.setFixedSize(800,400)
+        msg.setInformativeText(
+"""Fluorescence Monte Carlo(FMC) is an GPU based simulation program,
+Nvidia graphic card, and CUDA environment is needed for simulation.
+
+To run simulation, you can:
+
+1. set the parameters by GUI, and press the 'Run' button.
+
+2. store the parameters in the form given below, and open with 
+File->Auto, then press the 'Auto Run' button. It will iterate 
+all the case in the input file.
+
+[format]
+sample_name1, upA, upk, downA, downk, upg, downg, StO2, CHb, Ccol, thick
+sample_name2, upA, upk, downA, downk, upg, downg, StO2, CHb, Ccol, thick
+"""
+        )
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
+
     def auto(self):
         home = str(Path.home())
         self.fname = QFileDialog.getOpenFileName(self, 'Open file',
                                             home)
     def autoRun(self):
+        if self.fname == None:
+            self.warning('autoFileNotImportError')
+            return
         with open(self.fname[0],'r') as f:
             for line in f.readlines():
                 line = re.split('\t|\n|,',line)[:-1]
@@ -150,9 +195,25 @@ class Window(QMainWindow):
         webbrowser.open('http://bosi.ee.ntu.edu.tw/')
 
 
+    def warning(self,errorValue):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText(ERROR_TEXT[errorValue])
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
+
+
     def run(self):
         name = self.fileName.text()
+        # print name
+        if name == '':
+            self.warning('fileNameError')
+            return
+
         para = [float(j.text()) for i,j in self.paraValue.items()]
+        if para[4]==0 or para[5]==0:
+            self.warning('zeroGError')
+            return
 
         wavelength,parameters = calculate_mua_mus(para[0],para[1],para[2],
                                       para[3],para[4],para[5],
