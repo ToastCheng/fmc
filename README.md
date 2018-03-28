@@ -30,13 +30,16 @@ To use command line:
 note that you need to create a folder, say "example", and also there should be an txt file "example.txt" in the DRSOutput folder (the name should be the same). 
 
 The format of example.txt should be:
+wavelength    mua_top    mus_top    mua_bottom    mus_bottom
 
+e.g.
 ```
-wavelength  mua_top mus_top mua_bottom mus_bottom
+400   2.90    150.01    1.34    130.23
+410   3.56    140.33    1.56    124.23
+420   1.21    120.22    1.00    101.46
+...
 ```
 
 If you use the GUI, then you don't have to worry about these things.
-:)
-
 
 ""
