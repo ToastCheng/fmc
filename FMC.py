@@ -80,7 +80,7 @@ class Window(QMainWindow):
         file_close = menuFile.addAction('Close')
         file_close.triggered.connect(QApplication.instance().quit)
 
-        menuEdit.addAction('^3^')
+        menuEdit.addAction('-')
 
         simulate_run = menuSimulate.addAction('Run')
         simulate_run.triggered.connect(self.run)
